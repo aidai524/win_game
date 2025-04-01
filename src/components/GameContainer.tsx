@@ -6,6 +6,7 @@ import SpinningWheel from './SpinningWheel';
 import BetAmount from './BetAmount';
 import GameHistory from './GameHistory';
 import { v4 as uuidv4 } from 'uuid';
+import dynamic from 'next/dynamic';
 
 type Segment = {
   id: number;
@@ -22,7 +23,7 @@ type HistoryItem = {
   timestamp: Date;
 };
 
-const GameContainer: React.FC = () => {
+const GameContainerContent: React.FC = () => {
   const { connected, publicKey } = useWallet();
   const [betAmount, setBetAmount] = useState<number>(0.1);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
@@ -123,5 +124,8 @@ const GameContainer: React.FC = () => {
     </div>
   );
 };
+
+// 动态导入组件，禁用SSR
+const GameContainer = dynamic(() => Promise.resolve(GameContainerContent), { ssr: false });
 
 export default GameContainer; 

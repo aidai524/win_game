@@ -6,11 +6,13 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
+import dynamic from 'next/dynamic';
 
 // 导入默认钱包样式
 import '@solana/wallet-adapter-react-ui/styles.css';
 
-export default function Providers({ children }: { children: ReactNode }) {
+// 将整个组件动态导入以避免SSR问题
+const Providers = ({ children }: { children: ReactNode }) => {
   const [mounted, setMounted] = useState(false);
 
   // 客户端挂载后才能使用钱包适配器
@@ -49,4 +51,7 @@ export default function Providers({ children }: { children: ReactNode }) {
       </WalletProvider>
     </ConnectionProvider>
   );
-} 
+};
+
+// 导出动态导入的版本以避免SSR错误
+export default dynamic(() => Promise.resolve(Providers), { ssr: false }); 

@@ -3,11 +3,12 @@
 import React, { FC, useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import dynamic from 'next/dynamic';
 
 // 导入默认钱包样式
 import '@solana/wallet-adapter-react-ui/styles.css';
 
-const WalletConnect: FC = () => {
+const WalletConnectContent: FC = () => {
   const { connected, publicKey } = useWallet();
   const [mounted, setMounted] = useState(false);
 
@@ -41,5 +42,8 @@ const WalletConnect: FC = () => {
     </div>
   );
 };
+
+// 动态导入组件，禁用SSR
+const WalletConnect = dynamic(() => Promise.resolve(WalletConnectContent), { ssr: false });
 
 export default WalletConnect; 
