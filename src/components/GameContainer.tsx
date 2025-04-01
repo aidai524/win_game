@@ -2,18 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import SpinningWheel from './SpinningWheel';
+import CardGame, { GameResult } from './CardGame';
 import BetAmount from './BetAmount';
 import GameHistory from './GameHistory';
+import GameRules from './GameRules';
 import { v4 as uuidv4 } from 'uuid';
 import dynamic from 'next/dynamic';
-
-type Segment = {
-  id: number;
-  text: string;
-  value: number;
-  color: string;
-};
 
 type HistoryItem = {
   id: string;
@@ -26,7 +20,7 @@ type HistoryItem = {
 const GameContainerContent: React.FC = () => {
   const { connected, publicKey } = useWallet();
   const [betAmount, setBetAmount] = useState<number>(0.1);
-  const [isSpinning, setIsSpinning] = useState<boolean>(false);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [mounted, setMounted] = useState(false);
 
@@ -35,43 +29,31 @@ const GameContainerContent: React.FC = () => {
     setMounted(true);
   }, []);
 
-  // 转盘分区定义
-  const segments: Segment[] = [
-    { id: 1, text: '2X', value: 2, color: '#FF6384' },
-    { id: 2, text: '0X', value: 0, color: '#36A2EB' },
-    { id: 3, text: '1.5X', value: 1.5, color: '#FFCE56' },
-    { id: 4, text: '0X', value: 0, color: '#4BC0C0' },
-    { id: 5, text: '3X', value: 3, color: '#9966FF' },
-    { id: 6, text: '0.5X', value: 0.5, color: '#FF9F40' },
-    { id: 7, text: '0X', value: 0, color: '#36A2EB' },
-    { id: 8, text: '5X', value: 5, color: '#9966FF' },
-  ];
-
   const handleBetChange = (amount: number) => {
     setBetAmount(amount);
   };
 
-  const handleSpinStart = () => {
+  const handleGameStart = () => {
     if (!connected) {
       alert('请先连接钱包');
       return false;
     }
-    setIsSpinning(true);
+    setIsPlaying(true);
     return true;
   };
 
-  const handleSpinComplete = (segment: Segment) => {
-    setIsSpinning(false);
+  const handleGameComplete = (result: GameResult) => {
+    setIsPlaying(false);
     
     if (connected && publicKey) {
       // 处理实际下注和结果逻辑
-      const winAmount = segment.value * betAmount;
+      const winAmount = result.winAmount * betAmount;
       
       // 添加到历史记录
       const newHistoryItem: HistoryItem = {
         id: uuidv4(),
         playerAddress: publicKey.toString(),
-        result: segment.text,
+        result: result.rewardLevel.level,
         winAmount: winAmount,
         timestamp: new Date(),
       };
@@ -96,16 +78,16 @@ const GameContainerContent: React.FC = () => {
       <div className="flex flex-col md:flex-row gap-8">
         <div className="md:w-2/3">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">幸运转盘游戏</h1>
-            <p className="text-gray-300">连接钱包，下注SOL，赢取更多奖励！</p>
+            <h1 className="text-3xl font-bold text-white mb-2">幸运卡牌游戏</h1>
+            <p className="text-gray-300">连接钱包，下注SOL，匹配卡牌赢取奖励！</p>
+            <GameRules />
           </div>
           
-          {/* 转盘组件 */}
+          {/* 卡牌游戏组件 */}
           <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
-            <SpinningWheel
-              segments={segments}
-              onSpinComplete={handleSpinComplete}
-              onSpinStart={handleSpinStart}
+            <CardGame
+              onGameComplete={handleGameComplete}
+              onGameStart={handleGameStart}
             />
           </div>
         </div>
@@ -114,7 +96,7 @@ const GameContainerContent: React.FC = () => {
           {/* 下注金额组件 */}
           <BetAmount 
             onBetChange={handleBetChange} 
-            disabled={isSpinning || !connected} 
+            disabled={isPlaying || !connected} 
           />
           
           {/* 历史记录组件 */}
