@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SOL Game - 幸运转盘游戏
 
-## Getting Started
+这是一个基于Solana区块链的幸运转盘游戏，类似于[degenspin.com](https://www.degenspin.com/)。
 
-First, run the development server:
+## 功能特点
+
+- 幸运转盘游戏，用户可以旋转轮盘获得奖励
+- 连接Solana钱包进行支付和领取奖励
+- 响应式设计，支持移动设备和桌面设备
+- 实时显示赢家和历史结果
+
+## 技术栈
+
+- 前端: React.js, Next.js
+- 区块链交互: Solana Web3.js
+- 钱包连接: Solana Wallet Adapter
+- 样式: Tailwind CSS
+- 动画: GSAP 或 Framer Motion
+
+## 项目结构
+
+```
+/
+├── public/            # 静态资源
+├── src/               # 源代码
+│   ├── app/           # Next.js 应用路由
+│   ├── components/    # 可复用组件
+│   ├── hooks/         # 自定义钩子
+│   ├── lib/           # 实用工具和函数
+│   └── styles/        # 全局样式
+├── package.json       # 依赖管理
+└── README.md          # 项目文档
+```
+
+## 开发计划
+
+1. 创建基本项目架构
+2. 实现转盘组件和动画
+3. 添加钱包连接功能
+4. 实现下注逻辑
+5. 连接Solana区块链
+6. 添加历史结果和赢家列表
+7. 优化UI/UX和响应式设计
+8. 测试和部署
+
+## 使用方法
+
+### 安装依赖
+
+```bash
+npm install
+# 或
+yarn install
+```
+
+### 开发模式运行
 
 ```bash
 npm run dev
-# or
+# 或
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 构建生产版本
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+# 或
+yarn build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 启动生产服务
 
-## Learn More
+```bash
+npm start
+# 或
+yarn start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 游戏规则
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. 连接Solana钱包
+2. 选择下注金额
+3. 点击旋转按钮开始游戏
+4. 等待转盘停止，查看结果
+5. 如果赢了，奖励将自动发送到您的钱包
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 联系方式
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+如有任何问题或建议，请联系我们。
