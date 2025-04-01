@@ -19,6 +19,8 @@ export type RewardLevel = {
   multiplier: number;
 };
 
+export type CardRarity = "Legendary" | "Very Rare" | "Rare" | "Common";
+
 interface CardGameProps {
   onGameComplete: (result: GameResult) => void;
   onGameStart?: () => boolean;
@@ -32,12 +34,13 @@ export type GameResult = {
 
 // 卡片数据
 const CARDS: Card[] = [
-  { id: 1, name: '钻石', symbol: '💎', rarity: 'legendary', value: 5, color: '#9c54d5' },
-  { id: 2, name: '金币', symbol: '🪙', rarity: 'rare', value: 3, color: '#e6b422' },
-  { id: 3, name: '星星', symbol: '⭐', rarity: 'uncommon', value: 2, color: '#39a0ed' },
-  { id: 4, name: '月亮', symbol: '🌙', rarity: 'common', value: 1, color: '#718096' },
-  { id: 5, name: '太阳', symbol: '☀️', rarity: 'uncommon', value: 2, color: '#f6ad55' },
-  { id: 6, name: '地球', symbol: '🌍', rarity: 'rare', value: 3, color: '#38b2ac' },
+  { id: 1, name: '钻石', symbol: 'diamond', rarity: 'legendary', value: 5, color: '#9c54d5' },
+  { id: 2, name: '金币', symbol: 'coin', rarity: 'rare', value: 3, color: '#e6b422' },
+  { id: 3, name: '星星', symbol: 'star', rarity: 'uncommon', value: 2, color: '#e6ad1e' },
+  { id: 4, name: '皇冠', symbol: 'crown', rarity: 'rare', value: 3, color: '#c69c6d' },
+  { id: 5, name: '红心', symbol: 'heart', rarity: 'uncommon', value: 2, color: '#ca3c3c' },
+  { id: 6, name: '黑桃', symbol: 'spade', rarity: 'rare', value: 3, color: '#2e2e2e' },
+  { id: 7, name: '梅花', symbol: 'clover', rarity: 'uncommon', value: 2, color: '#4ca64c' },
 ];
 
 // 奖励等级
@@ -47,7 +50,23 @@ const REWARD_LEVELS: RewardLevel[] = [
   { level: '未中奖', description: '三张卡片都不同', multiplier: 0 },
 ];
 
-const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart }) => {
+// Helper function to get card background color based on rarity
+const getCardBgColor = (rarity: string): string => {
+  switch (rarity) {
+    case "legendary":
+      return "bg-gradient-to-br from-yellow-400 to-yellow-600";
+    case "rare":
+      return "bg-gradient-to-br from-purple-400 to-purple-600";
+    case "uncommon":
+      return "bg-gradient-to-br from-blue-400 to-blue-600";
+    case "common":
+      return "bg-gradient-to-br from-gray-300 to-gray-500";
+    default:
+      return "bg-gradient-to-br from-gray-300 to-gray-500";
+  }
+};
+
+export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart }) => {
   const [cards, setCards] = useState<Card[]>([]);
   const [flipped, setFlipped] = useState<boolean[]>([false, false, false]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -142,61 +161,44 @@ const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart }) => {
     const card = cards[index];
 
     return (
-      <div className="card-container" key={`card-${index}`}>
-        <div 
-          className={`card ${isFlippedCard ? 'flipped' : ''}`}
-          style={{
-            transformStyle: 'preserve-3d',
-            transition: 'transform 0.6s',
-            transform: isFlippedCard ? 'rotateY(180deg)' : 'rotateY(0deg)',
-            position: 'relative',
-            width: '100%',
-            height: '100%',
-          }}
-        >
-          {/* 卡片背面 */}
+      <div className="w-24 h-32 md:w-32 md:h-44" key={`card-${index}`}>
+        <div className="card-container">
           <div 
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              backfaceVisibility: 'hidden',
-            }}
-            className="w-24 h-32 md:w-32 md:h-44 bg-indigo-800 rounded-lg shadow-lg flex items-center justify-center cursor-not-allowed"
+            className={`card ${isFlippedCard ? 'rotate-y-180' : ''}`}
           >
-            <div className="absolute inset-2 border-2 border-dashed border-indigo-400 rounded-md"></div>
-            <span className="text-4xl text-indigo-200">?</span>
-          </div>
-
-          {/* 卡片正面 - 只有在有卡片时才渲染 */}
-          {card && (
+            {/* 卡片背面 */}
             <div 
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                backfaceVisibility: 'hidden',
-                transform: 'rotateY(180deg)',
-                borderColor: card.color
-              }}
-              className={`w-24 h-32 md:w-32 md:h-44 bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg shadow-lg overflow-hidden border-2`}
+              className="card-face bg-indigo-800 rounded-lg shadow-lg flex items-center justify-center cursor-not-allowed"
             >
-              <div className="flex flex-col items-center justify-between h-full p-2">
-                <div className="text-xs font-bold text-white w-full text-center truncate">
-                  {card.name}
-                </div>
-                
-                <div className="flex-grow flex items-center justify-center">
-                  <span className="text-5xl md:text-6xl">{card.symbol}</span>
-                </div>
-                
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-xs bg-black/30 px-1 rounded text-white">{card.rarity}</span>
-                  <span className="text-xs bg-yellow-500 text-black px-1 rounded">x{card.value}</span>
+              <div className="absolute inset-2 border-2 border-dashed border-indigo-400 rounded-md"></div>
+              <span className="text-4xl text-indigo-200">?</span>
+            </div>
+
+            {/* 卡片正面 - 只有在有卡片时才渲染 */}
+            {card && (
+              <div 
+                className={`card-face card-front ${getCardBgColor(card.rarity)} rounded-lg shadow-lg overflow-hidden border-2`}
+                style={{
+                  borderColor: card.color
+                }}
+              >
+                <div className="flex flex-col items-center justify-between h-full p-2">
+                  <div className="text-xs font-bold text-white w-full text-center truncate">
+                    {card.name}
+                  </div>
+                  
+                  <div className="flex-grow flex items-center justify-center">
+                    <img src={`/icons/${card.symbol}.svg`} alt={card.name} className="w-16 h-16" />
+                  </div>
+                  
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs bg-black/30 px-1 rounded text-white">{card.rarity}</span>
+                    <span className="text-xs bg-yellow-500 text-black px-1 rounded">x{card.value}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     );
@@ -208,9 +210,7 @@ const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart }) => {
       <div className="relative w-full">
         <div className="flex justify-center gap-4 my-8">
           {[0, 1, 2].map((index) => (
-            <div className="w-24 h-32 md:w-32 md:h-44" key={`wrapper-${index}`}>
-              {renderCard(index)}
-            </div>
+            renderCard(index)
           ))}
         </div>
       </div>
