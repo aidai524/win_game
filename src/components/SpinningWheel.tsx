@@ -21,32 +21,38 @@ const SpinningWheel: React.FC<SpinningWheelProps> = ({ segments, onSpinComplete,
   const [isSpinning, setIsSpinning] = useState(false);
   const [selectedSegment, setSelectedSegment] = useState<Segment | null>(null);
   
-  // 计算转盘每个扇区的角度
+  // Calculate the angle for each wheel segment
   const segmentAngle = 360 / segments.length;
 
   useEffect(() => {
-    // 初始化GSAP上下文，确保没有内存泄漏
+    const wheel = wheelRef.current;
+    if (!wheel) return;
+
+    const handleScroll = () => {
+      const rotation = window.scrollY / 2;
+      wheel.style.transform = `rotate(${rotation}deg)`;
+    };
+
+    window.addEventListener('scroll', handleScroll);
     return () => {
-      if (wheelRef.current) {
-        gsap.killTweensOf(wheelRef.current);
-      }
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
   
   const getRotationDegrees = () => {
     try {
-      // 随机选择一个区域作为获胜区域
+      // Randomly select a winning segment
       const selectedIndex = Math.floor(Math.random() * segments.length);
       const segment = segments[selectedIndex];
       
-      // 计算旋转角度 (5圈 + 随机选择的角度)
-      // 减去选中扇区的一半角度使其居中
+      // Calculate rotation degrees (5 turns + random angle)
+      // Subtract half segment angle to center it
       const degrees = 1800 + (selectedIndex * segmentAngle) + (segmentAngle / 2);
       
       return { degrees, segment };
     } catch (error) {
-      console.error('获取旋转度数时出错:', error);
-      // 返回默认值
+      console.error('Error getting rotation degrees:', error);
+      // Return default values
       return { 
         degrees: 1800, 
         segment: segments[0] 
@@ -58,7 +64,7 @@ const SpinningWheel: React.FC<SpinningWheelProps> = ({ segments, onSpinComplete,
     try {
       if (isSpinning || !wheelRef.current) return;
       
-      // 如果有onSpinStart回调，且返回false，则不旋转
+      // If onSpinStart callback exists and returns false, don't spin
       if (onSpinStart && !onSpinStart()) {
         return;
       }
@@ -77,7 +83,7 @@ const SpinningWheel: React.FC<SpinningWheelProps> = ({ segments, onSpinComplete,
         }
       });
     } catch (error) {
-      console.error('旋转转盘时出错:', error);
+      console.error('Error spinning wheel:', error);
       setIsSpinning(false);
     }
   };
@@ -88,7 +94,7 @@ const SpinningWheel: React.FC<SpinningWheelProps> = ({ segments, onSpinComplete,
         className="w-72 h-72 md:w-96 md:h-96 rounded-full border-8 border-yellow-500 overflow-hidden relative mx-auto"
         style={{ transformOrigin: 'center center' }}
       >
-        {/* 转盘 */}
+        {/* Wheel */}
         <div 
           ref={wheelRef} 
           className="w-full h-full absolute"
@@ -119,25 +125,25 @@ const SpinningWheel: React.FC<SpinningWheelProps> = ({ segments, onSpinComplete,
         </div>
       </div>
       
-      {/* 指针 */}
+      {/* Pointer */}
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-6 h-12 z-10">
         <div className="w-0 h-0 border-l-[15px] border-r-[15px] border-t-[30px] border-l-transparent border-r-transparent border-t-red-600"></div>
       </div>
       
-      {/* 旋转按钮 */}
+      {/* Spin button */}
       <button
         onClick={spinWheel}
         disabled={isSpinning}
         className={`mt-8 px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-bold rounded-full shadow-lg hover:from-yellow-500 hover:to-yellow-700 transition-all duration-300 ${isSpinning ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        {isSpinning ? '旋转中...' : '开始旋转'}
+        {isSpinning ? 'Spinning...' : 'Start Spin'}
       </button>
       
-      {/* 结果显示 */}
+      {/* Result display */}
       {selectedSegment && !isSpinning && (
         <div className="mt-4 text-center">
           <p className="text-xl font-bold">
-            恭喜！你赢得了 <span className="text-yellow-500">{selectedSegment.text}</span>
+            Congratulations! You won <span className="text-yellow-500">{selectedSegment.text}</span>
           </p>
         </div>
       )}

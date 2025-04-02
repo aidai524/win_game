@@ -3,8 +3,8 @@ import "./globals.css";
 import Providers from "./providers";
 
 export const metadata: Metadata = {
-  title: "SOL Game - 幸运转盘游戏",
-  description: "基于Solana区块链的幸运转盘游戏，下注SOL，赢取更多！",
+  title: "SOL Game - Lucky Card Game",
+  description: "A Solana blockchain-based lucky card game. Bet SOL to win more!",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh">
+    <html lang="en">
       <body>
         <Providers>
           {children}

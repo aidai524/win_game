@@ -10,7 +10,7 @@ export default function Home() {
         <header className="py-6 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-yellow-400">SOL Game</h1>
-            <p className="text-gray-400">幸运转盘游戏</p>
+            <p className="text-gray-400">Lucky Card Game</p>
           </div>
           <WalletConnect />
         </header>
@@ -18,8 +18,8 @@ export default function Home() {
         <GameContainer />
         
         <footer className="mt-20 py-8 border-t border-gray-800 text-center text-gray-500">
-          <p>© {new Date().getFullYear()} SOL Game. 版权所有。</p>
-          <p className="mt-2">注意：游戏具有随机性，请理性游戏。</p>
+          <p>© {new Date().getFullYear()} SOL Game. All rights reserved.</p>
+          <p className="mt-2">Note: This game involves randomness. Please play responsibly.</p>
         </footer>
       </div>
     </main>
