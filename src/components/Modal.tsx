@@ -21,7 +21,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
       />
       
       {/* 弹框内容 */}
-      <div className="relative bg-gray-900 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-gray-900 rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* 标题栏 */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <h3 className="text-xl font-bold text-white">{title}</h3>

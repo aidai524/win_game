@@ -18,7 +18,7 @@ const BetAmount: FC<BetAmountProps> = ({ onBetChange, disabled = false }) => {
 
   return (
     <div className="w-full p-4 rounded-lg bg-gray-800 shadow-lg">
-      <h2 className="text-xl font-bold text-white mb-4">选择下注金额</h2>
+      <h2 className="text-xl font-bold text-white mb-4">Select Bet Amount</h2>
       
       <div className="grid grid-cols-3 gap-2">
         {betOptions.map((option) => (
@@ -38,7 +38,7 @@ const BetAmount: FC<BetAmountProps> = ({ onBetChange, disabled = false }) => {
       </div>
       
       <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-300 mb-1">自定义金额</label>
+        <label className="block text-sm font-medium text-gray-300 mb-1">Custom Amount</label>
         <div className="flex items-center">
           <input
             type="number"
