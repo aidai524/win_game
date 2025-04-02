@@ -30,18 +30,10 @@ const WalletConnectContent: FC = () => {
       </div>
     );
   }
-
-  // 只有在客户端渲染后才访问钱包状态
-  const { connected, publicKey } = wallet;
-
+  
   return (
     <div className="flex flex-col items-center gap-2">
       <WalletMultiButton className="!bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700" />
-      {connected && publicKey && (
-        <p className="text-sm text-gray-300">
-          已连接: {publicKey.toString().slice(0, 4)}...{publicKey.toString().slice(-4)}
-        </p>
-      )}
     </div>
   );
 };

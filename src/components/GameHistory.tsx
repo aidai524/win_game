@@ -1,57 +1,61 @@
 'use client';
 
-import React, { FC } from 'react';
-
-type HistoryItem = {
-  id: string;
-  playerAddress: string;
-  result: string;
-  winAmount: number;
-  timestamp: Date;
-};
+import React from 'react';
+import Modal from './Modal';
+import { GameResult } from './CardGame';
 
 interface GameHistoryProps {
-  history: HistoryItem[];
+  isOpen: boolean;
+  onClose: () => void;
+  history: GameResult[];
 }
 
-const GameHistory: FC<GameHistoryProps> = ({ history }) => {
-  if (!history.length) {
-    return (
-      <div className="w-full p-4 rounded-lg bg-gray-800 shadow-lg">
-        <h2 className="text-xl font-bold text-white mb-4">最近游戏</h2>
-        <p className="text-gray-400 text-center py-4">暂无游戏记录</p>
-      </div>
-    );
-  }
-
+const GameHistory: React.FC<GameHistoryProps> = ({ isOpen, onClose, history }) => {
   return (
-    <div className="w-full p-4 rounded-lg bg-gray-800 shadow-lg">
-      <h2 className="text-xl font-bold text-white mb-4">最近游戏</h2>
-      <div className="overflow-auto max-h-80">
-        <table className="w-full text-sm text-left text-gray-300">
-          <thead className="text-xs uppercase bg-gray-700">
-            <tr>
-              <th className="py-3 px-4">玩家</th>
-              <th className="py-3 px-4">结果</th>
-              <th className="py-3 px-4">赢取金额</th>
-              <th className="py-3 px-4">时间</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map((item) => (
-              <tr key={item.id} className="border-b border-gray-700 hover:bg-gray-600">
-                <td className="py-3 px-4">
-                  {item.playerAddress.slice(0, 4)}...{item.playerAddress.slice(-4)}
-                </td>
-                <td className="py-3 px-4">{item.result}</td>
-                <td className="py-3 px-4 text-yellow-400">{item.winAmount.toFixed(2)} SOL</td>
-                <td className="py-3 px-4">{item.timestamp.toLocaleTimeString()}</td>
-              </tr>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="游戏记录"
+    >
+      <div className="space-y-4">
+        {history.length === 0 ? (
+          <p className="text-gray-400 text-center">暂无游戏记录</p>
+        ) : (
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {history.map((result, index) => (
+              <div key={index} className="bg-gray-800/50 p-4 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-400">第 {history.length - index} 局</span>
+                  <span className={`text-sm font-bold ${result.winAmount > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {result.winAmount > 0 ? '+' : ''}{result.winAmount}
+                  </span>
+                </div>
+                <div className="flex gap-2 mb-2">
+                  {result.cards.map((card, cardIndex) => (
+                    <div 
+                      key={cardIndex}
+                      className={`w-12 h-16 rounded-md flex items-center justify-center p-1`}
+                      style={{
+                        backgroundColor: card.color + '33' // 添加透明度
+                      }}
+                    >
+                      <img 
+                        src={`/icons/${card.symbol}.svg`}
+                        alt={card.name}
+                        className="w-8 h-8"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {result.rewardLevel.description} ({result.rewardLevel.multiplier}x)
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 };
 

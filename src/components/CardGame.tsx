@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import GameHistory from './GameHistory';
+import GameRules from './GameRules';
 
 // 卡片类型定义
 interface Card {
@@ -16,6 +18,7 @@ export type RewardLevel = {
   level: string;
   description: string;
   multiplier: number;
+  finalMultiplier: number;
 };
 
 export type CardRarity = "Legendary" | "Very Rare" | "Rare" | "Common";
@@ -57,8 +60,8 @@ const SYMBOL_RARITIES: Record<string, Rarity[]> = {
 // 定义稀有度对应的奖励倍数
 const RARITY_MULTIPLIERS: Record<Rarity, number> = {
   legendary: 5,    // 传说
-  epic: 2,         // 史诗
-  rare: 1.5,       // 精良
+  epic: 3,         // 史诗
+  rare: 1.8,       // 精良
   uncommon: 1.2,   // 优秀
   common: 1        // 普通
 };
@@ -123,9 +126,17 @@ export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart 
   const [isPlaying, setIsPlaying] = useState(false);
   const [result, setResult] = useState<GameResult | null>(null);
   const [flippedCount, setFlippedCount] = useState(0);
+  const [betAmount, setBetAmount] = useState(1);
+  const [gameHistory, setGameHistory] = useState<GameResult[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   // 开始新游戏
   const startNewGame = () => {
+    if (betAmount <= 0) {
+      alert('请输入有效的下注金额');
+      return;
+    }
+    
     const newCards = Array(3).fill(null).map(() => generateRandomCard());
     setCards(newCards);
     setFlipped([false, false, false]);
@@ -189,20 +200,18 @@ export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart 
     if (flippedCount === 2) {
       const rewardLevel = analyzeResult(cards);
       
-      // 计算总价值（考虑每张卡片的稀有度价值）
-      const totalValue = cards.reduce((sum, card) => sum + card.value, 0);
-      
-      // 创建游戏结果
+      // 计算总价值（考虑每张卡片的稀有度价值和下注金额）
       const gameResult: GameResult = {
         cards: cards,
         rewardLevel,
-        winAmount: totalValue * rewardLevel.finalMultiplier
+        winAmount: betAmount * rewardLevel.finalMultiplier
       };
 
       // 延迟显示结果，给玩家时间看第三张卡
       setTimeout(() => {
         setResult(gameResult);
         setIsPlaying(false);
+        setGameHistory(prev => [gameResult, ...prev]);
         onGameComplete?.(gameResult);
       }, 1000);
     }
@@ -214,7 +223,7 @@ export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart 
     const card = cards[index];
 
     return (
-      <div className="w-24 h-32 md:w-32 md:h-44" key={`card-${index}`}>
+      <div className="w-32 h-44 md:w-40 md:h-56" key={`card-${index}`}>
         <div 
           className="card-container"
           onClick={() => handleCardClick(index)}
@@ -244,7 +253,7 @@ export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart 
                   </div>
                   
                   <div className="flex-grow flex items-center justify-center">
-                    <img src={`/icons/${card.symbol}.svg`} alt={card.name} className="w-16 h-16" />
+                    <img src={`/icons/${card.symbol}.svg`} alt={card.name} className="w-20 h-20 md:w-24 md:h-24" />
                   </div>
                   
                   <div className="flex items-center justify-between w-full">
@@ -261,36 +270,56 @@ export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart 
   };
 
   return (
-    <div className="flex flex-col items-center">
-      {/* 卡片区域 */}
-      <div className="relative w-full">
-        <div className="flex justify-center gap-4 my-8">
-          {[0, 1, 2].map((index) => renderCard(index))}
+    <div className="flex flex-col items-center w-full max-w-4xl mx-auto p-4">
+      {/* 游戏控制区域 */}
+      <div className="w-full flex flex-wrap justify-between items-center gap-4 mb-8">
+        <GameRules />
+        
+        <div className="flex items-center gap-4">
+          <button
+            onClick={startNewGame}
+            disabled={isPlaying}
+            className={`px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-full shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 ${isPlaying ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isPlaying ? '游戏进行中...' : '开始游戏'}
+          </button>
+
+          <button
+            onClick={() => setShowHistory(true)}
+            className="px-4 py-2 bg-gray-700 text-white rounded-full hover:bg-gray-600 transition-colors"
+          >
+            游戏记录
+          </button>
         </div>
       </div>
 
-      {/* 开始按钮 */}
-      <button
-        onClick={startNewGame}
-        disabled={isPlaying}
-        className={`mt-8 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-full shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 ${isPlaying ? 'opacity-50 cursor-not-allowed' : ''}`}
-      >
-        {isPlaying ? '游戏进行中...' : '开始游戏'}
-      </button>
-
-      {/* 游戏结果 */}
-      {result && (
-        <div className="mt-6 text-center">
-          <h3 className="text-xl font-bold mb-2">{result.rewardLevel.level}</h3>
-          <p className="text-gray-600">{result.rewardLevel.description}</p>
-          <p className="text-lg font-bold text-indigo-600 mt-2">
-            奖励倍数: x{result.rewardLevel.multiplier}
-          </p>
-          <p className="text-2xl font-bold text-green-600 mt-2">
-            获得奖励: {result.winAmount}
-          </p>
+      {/* 卡片区域 */}
+      <div className="relative w-full bg-gray-800/50 rounded-xl p-8 mb-8">
+        <div className="flex justify-center gap-6 my-8">
+          {[0, 1, 2].map((index) => renderCard(index))}
         </div>
-      )}
+
+        {/* 游戏结果 */}
+        {result && (
+          <div className="mt-6 text-center p-4 bg-gray-900/50 rounded-lg">
+            <h3 className="text-xl font-bold mb-2">{result.rewardLevel.level}</h3>
+            <p className="text-gray-400">{result.rewardLevel.description}</p>
+            <p className="text-lg font-bold text-indigo-400 mt-2">
+              奖励倍数: x{result.rewardLevel.finalMultiplier.toFixed(3)}
+            </p>
+            <p className="text-2xl font-bold text-green-400 mt-2">
+              获得奖励: {result.winAmount.toFixed(3)} SOL
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 游戏记录弹窗 */}
+      <GameHistory
+        isOpen={showHistory}
+        onClose={() => setShowHistory(false)}
+        history={gameHistory}
+      />
     </div>
   );
 };
