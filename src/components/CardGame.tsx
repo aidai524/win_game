@@ -3,14 +3,13 @@
 import React, { useState } from 'react';
 
 // 卡片类型定义
-export type Card = {
-  id: number;
+interface Card {
   name: string;
   symbol: string;
-  rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+  rarity: Rarity;
   value: number;
   color: string;
-};
+}
 
 // 奖励等级定义
 export type RewardLevel = {
@@ -32,127 +31,181 @@ export type GameResult = {
   winAmount: number;
 };
 
-// 卡片数据
-const CARDS: Card[] = [
-  { id: 1, name: '钻石', symbol: 'diamond', rarity: 'legendary', value: 5, color: '#9c54d5' },
-  { id: 2, name: '金币', symbol: 'coin', rarity: 'rare', value: 3, color: '#e6b422' },
-  { id: 3, name: '星星', symbol: 'star', rarity: 'uncommon', value: 2, color: '#e6ad1e' },
-  { id: 4, name: '皇冠', symbol: 'crown', rarity: 'rare', value: 3, color: '#c69c6d' },
-  { id: 5, name: '红心', symbol: 'heart', rarity: 'uncommon', value: 2, color: '#ca3c3c' },
-  { id: 6, name: '黑桃', symbol: 'spade', rarity: 'rare', value: 3, color: '#2e2e2e' },
-  { id: 7, name: '梅花', symbol: 'clover', rarity: 'uncommon', value: 2, color: '#4ca64c' },
-];
+// 定义稀有度类型
+type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
-// 奖励等级
-const REWARD_LEVELS: RewardLevel[] = [
-  { level: '大奖', description: '三张卡片完全相同', multiplier: 5 },
-  { level: '二等奖', description: '两张卡片相同', multiplier: 2 },
-  { level: '未中奖', description: '三张卡片都不同', multiplier: 0 },
-];
+// 定义稀有度对应的颜色
+const RARITY_COLORS = {
+  common: '#9e9e9e',     // 灰色（普通）
+  uncommon: '#4caf50',   // 绿色（优秀）
+  rare: '#2196f3',       // 蓝色（精良）
+  epic: '#9c27b0',       // 紫色（史诗）
+  legendary: '#ff9800'   // 橙色（传说）
+};
 
-// Helper function to get card background color based on rarity
-const getCardBgColor = (rarity: string): string => {
+// 定义每个符号可用的稀有度
+const SYMBOL_RARITIES: Record<string, Rarity[]> = {
+  crown: ['rare', 'epic', 'legendary'],
+  diamond: ['uncommon', 'rare', 'epic'],
+  coin: ['uncommon', 'rare', 'epic'],
+  heart: ['uncommon', 'rare', 'epic'],
+  clover: ['common', 'uncommon', 'rare'],
+  star: ['common', 'uncommon', 'rare'],
+  spade: ['common', 'uncommon', 'rare']
+};
+
+// 定义稀有度对应的奖励倍数
+const RARITY_MULTIPLIERS: Record<Rarity, number> = {
+  legendary: 5,    // 传说
+  epic: 2,         // 史诗
+  rare: 1.5,       // 精良
+  uncommon: 1.2,   // 优秀
+  common: 1        // 普通
+};
+
+// 定义稀有度的中文名称
+const RARITY_NAMES: Record<Rarity, string> = {
+  common: '普通',
+  uncommon: '优秀',
+  rare: '精良',
+  epic: '史诗',
+  legendary: '传说'
+};
+
+// 获取卡片背景颜色的函数
+const getCardBgColor = (rarity: Rarity) => {
   switch (rarity) {
-    case "legendary":
-      return "bg-gradient-to-br from-yellow-400 to-yellow-600";
-    case "rare":
-      return "bg-gradient-to-br from-purple-400 to-purple-600";
-    case "uncommon":
-      return "bg-gradient-to-br from-blue-400 to-blue-600";
-    case "common":
-      return "bg-gradient-to-br from-gray-300 to-gray-500";
+    case 'legendary':
+      return 'bg-gradient-to-br from-orange-400 to-orange-600';
+    case 'epic':
+      return 'bg-gradient-to-br from-purple-400 to-purple-600';
+    case 'rare':
+      return 'bg-gradient-to-br from-blue-400 to-blue-600';
+    case 'uncommon':
+      return 'bg-gradient-to-br from-green-400 to-green-600';
     default:
-      return "bg-gradient-to-br from-gray-300 to-gray-500";
+      return 'bg-gradient-to-br from-gray-400 to-gray-600';
   }
 };
 
-export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart }) => {
-  const [cards, setCards] = useState<Card[]>([]);
-  const [flipped, setFlipped] = useState<boolean[]>([false, false, false]);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [result, setResult] = useState<GameResult | null>(null);
+// 生成指定符号的随机稀有度
+const getRandomRarity = (symbol: string): Rarity => {
+  const availableRarities = SYMBOL_RARITIES[symbol];
+  const randomIndex = Math.floor(Math.random() * availableRarities.length);
+  return availableRarities[randomIndex];
+};
 
-  // 重置游戏状态
-  const resetGame = () => {
-    setCards([]);
+// 生成随机卡片
+const generateRandomCard = (): Card => {
+  const symbols = Object.keys(SYMBOL_RARITIES);
+  const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+  const rarity = getRandomRarity(randomSymbol);
+  
+  return {
+    symbol: randomSymbol,
+    name: `${RARITY_NAMES[rarity]}的${randomSymbol}`,
+    rarity: rarity,
+    value: RARITY_MULTIPLIERS[rarity],
+    color: RARITY_COLORS[rarity]
+  };
+};
+
+// 奖励等级
+const REWARD_LEVELS = [
+  { level: '三连奖励', description: '三张相同卡片', multiplier: 1 },
+  { level: '双连奖励', description: '两张相同卡片', multiplier: 0.5 },
+  { level: '未中奖', description: '三张卡片都不同', multiplier: 0 },
+];
+
+export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart }) => {
+  const [flipped, setFlipped] = useState<boolean[]>([false, false, false]);
+  const [cards, setCards] = useState<Card[]>([]);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [result, setResult] = useState<GameResult | null>(null);
+  const [flippedCount, setFlippedCount] = useState(0);
+
+  // 开始新游戏
+  const startNewGame = () => {
+    const newCards = Array(3).fill(null).map(() => generateRandomCard());
+    setCards(newCards);
     setFlipped([false, false, false]);
     setResult(null);
-  };
-
-  // 随机选择卡片
-  const selectRandomCards = (): Card[] => {
-    const selectedCards: Card[] = [];
-    
-    // 随机选择三张卡片
-    for (let i = 0; i < 3; i++) {
-      const randomIndex = Math.floor(Math.random() * CARDS.length);
-      selectedCards.push(CARDS[randomIndex]);
-    }
-    
-    return selectedCards;
-  };
-
-  // 分析结果
-  const analyzeResult = (selectedCards: Card[]): RewardLevel => {
-    // 计算卡片ID出现的次数
-    const cardCounts = selectedCards.reduce((acc, card) => {
-      acc[card.id] = (acc[card.id] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
-    
-    // 找出出现最多次的卡片ID及其出现次数
-    const maxCount = Math.max(...Object.values(cardCounts));
-    
-    // 根据最大出现次数确定奖励等级
-    if (maxCount === 3) {
-      // 三张相同 - 大奖
-      return REWARD_LEVELS[0];
-    } else if (maxCount === 2) {
-      // 两张相同 - 二等奖
-      return REWARD_LEVELS[1];
-    } else {
-      // 三张都不同 - 未中奖
-      return REWARD_LEVELS[2];
-    }
-  };
-
-  // 开始游戏
-  const startGame = () => {
-    // 如果有onGameStart回调且返回false，则不开始游戏
-    if (onGameStart && !onGameStart()) {
-      return;
-    }
-
-    resetGame();
+    setFlippedCount(0);
     setIsPlaying(true);
-    
-    // 选择随机卡片
-    const selectedCards = selectRandomCards();
-    setCards(selectedCards);
-    
-    // 模拟翻牌动画
-    setTimeout(() => setFlipped([true, false, false]), 500);
-    setTimeout(() => setFlipped([true, true, false]), 1000);
-    setTimeout(() => setFlipped([true, true, true]), 1500);
-    
-    // 游戏结束后计算结果
-    setTimeout(() => {
-      const rewardLevel = analyzeResult(selectedCards);
-      
-      // 计算总价值
-      const totalValue = selectedCards.reduce((sum, card) => sum + card.value, 0);
-      
-      // 根据奖励等级计算最终奖励
-      const gameResult: GameResult = {
-        cards: selectedCards,
-        rewardLevel,
-        winAmount: totalValue * rewardLevel.multiplier,
+    onGameStart?.();
+  };
+
+  // 分析游戏结果
+  const analyzeResult = (selectedCards: Card[]) => {
+    // 统计每个符号出现的次数
+    const symbolCounts = selectedCards.reduce((counts, card) => {
+      counts[card.symbol] = (counts[card.symbol] || 0) + 1;
+      return counts;
+    }, {} as Record<string, number>);
+
+    // 找到最多重复的次数
+    const maxCount = Math.max(...Object.values(symbolCounts));
+
+    // 根据匹配情况返回奖励等级
+    if (maxCount === 3) {
+      // 三张相同时，奖励为 B × X × X × X
+      const card = selectedCards[0]; // 三张相同，取第一张计算
+      const rarityMultiplier = RARITY_MULTIPLIERS[card.rarity];
+      return {
+        ...REWARD_LEVELS[0],
+        finalMultiplier: REWARD_LEVELS[0].multiplier * Math.pow(rarityMultiplier, 3)
       };
+    } else if (maxCount === 2) {
+      // 两张相同时，奖励为 B × X × X
+      // 找出重复的卡片
+      const [matchedSymbol] = Object.entries(symbolCounts).find(([, count]) => count === 2) || [];
+      const matchedCard = selectedCards.find(card => card.symbol === matchedSymbol);
+      if (matchedCard) {
+        const rarityMultiplier = RARITY_MULTIPLIERS[matchedCard.rarity];
+        return {
+          ...REWARD_LEVELS[1],
+          finalMultiplier: REWARD_LEVELS[1].multiplier * Math.pow(rarityMultiplier, 2)
+        };
+      }
+    }
+    
+    // 三张都不同
+    return {
+      ...REWARD_LEVELS[2],
+      finalMultiplier: 0
+    };
+  };
+
+  // 处理卡片点击
+  const handleCardClick = (index: number) => {
+    if (!isPlaying || flipped[index] || flippedCount >= 3) return;
+
+    const newFlipped = [...flipped];
+    newFlipped[index] = true;
+    setFlipped(newFlipped);
+    setFlippedCount(prev => prev + 1);
+
+    // 当翻开第三张卡片时，分析结果
+    if (flippedCount === 2) {
+      const rewardLevel = analyzeResult(cards);
       
-      setResult(gameResult);
-      setIsPlaying(false);
-      onGameComplete(gameResult);
-    }, 2000);
+      // 计算总价值（考虑每张卡片的稀有度价值）
+      const totalValue = cards.reduce((sum, card) => sum + card.value, 0);
+      
+      // 创建游戏结果
+      const gameResult: GameResult = {
+        cards: cards,
+        rewardLevel,
+        winAmount: totalValue * rewardLevel.finalMultiplier
+      };
+
+      // 延迟显示结果，给玩家时间看第三张卡
+      setTimeout(() => {
+        setResult(gameResult);
+        setIsPlaying(false);
+        onGameComplete?.(gameResult);
+      }, 1000);
+    }
   };
 
   // 渲染卡片（带翻转动画）
@@ -162,13 +215,16 @@ export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart 
 
     return (
       <div className="w-24 h-32 md:w-32 md:h-44" key={`card-${index}`}>
-        <div className="card-container">
+        <div 
+          className="card-container"
+          onClick={() => handleCardClick(index)}
+        >
           <div 
             className={`card ${isFlippedCard ? 'rotate-y-180' : ''}`}
           >
             {/* 卡片背面 */}
             <div 
-              className="card-face bg-indigo-800 rounded-lg shadow-lg flex items-center justify-center cursor-not-allowed"
+              className="card-face bg-indigo-800 rounded-lg shadow-lg flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-colors"
             >
               <div className="absolute inset-2 border-2 border-dashed border-indigo-400 rounded-md"></div>
               <span className="text-4xl text-indigo-200">?</span>
@@ -209,37 +265,32 @@ export const CardGame: React.FC<CardGameProps> = ({ onGameComplete, onGameStart 
       {/* 卡片区域 */}
       <div className="relative w-full">
         <div className="flex justify-center gap-4 my-8">
-          {[0, 1, 2].map((index) => (
-            renderCard(index)
-          ))}
+          {[0, 1, 2].map((index) => renderCard(index))}
         </div>
       </div>
 
-      {/* 结果显示区域 */}
-      {result && (
-        <div className="mt-4 p-4 bg-gray-800/80 rounded-lg text-center max-w-md">
-          <h3 className={`text-xl font-bold ${result.rewardLevel.multiplier > 0 ? 'text-yellow-400' : 'text-gray-400'}`}>
-            {result.rewardLevel.level}！
-          </h3>
-          <p className="text-gray-300 text-sm mt-1">
-            {result.rewardLevel.description}
-          </p>
-          {result.rewardLevel.multiplier > 0 && (
-            <p className="text-green-400 font-bold mt-2">
-              赢得 {result.winAmount.toFixed(2)} SOL
-            </p>
-          )}
-        </div>
-      )}
-
       {/* 开始按钮 */}
       <button
-        onClick={startGame}
+        onClick={startNewGame}
         disabled={isPlaying}
         className={`mt-8 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-full shadow-lg hover:from-indigo-600 hover:to-purple-700 transition-all duration-300 ${isPlaying ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
-        {isPlaying ? '游戏中...' : '开始游戏'}
+        {isPlaying ? '游戏进行中...' : '开始游戏'}
       </button>
+
+      {/* 游戏结果 */}
+      {result && (
+        <div className="mt-6 text-center">
+          <h3 className="text-xl font-bold mb-2">{result.rewardLevel.level}</h3>
+          <p className="text-gray-600">{result.rewardLevel.description}</p>
+          <p className="text-lg font-bold text-indigo-600 mt-2">
+            奖励倍数: x{result.rewardLevel.multiplier}
+          </p>
+          <p className="text-2xl font-bold text-green-600 mt-2">
+            获得奖励: {result.winAmount}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

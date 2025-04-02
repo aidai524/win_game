@@ -9,8 +9,8 @@ import dynamic from 'next/dynamic';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 const WalletConnectContent: FC = () => {
-  const { connected, publicKey } = useWallet();
   const [mounted, setMounted] = useState(false);
+  const wallet = useWallet();
 
   // 只在客户端渲染后显示
   useEffect(() => {
@@ -30,6 +30,9 @@ const WalletConnectContent: FC = () => {
       </div>
     );
   }
+
+  // 只有在客户端渲染后才访问钱包状态
+  const { connected, publicKey } = wallet;
 
   return (
     <div className="flex flex-col items-center gap-2">

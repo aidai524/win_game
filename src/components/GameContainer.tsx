@@ -18,16 +18,30 @@ type HistoryItem = {
 };
 
 const GameContainerContent: React.FC = () => {
-  const { connected, publicKey } = useWallet();
+  const [mounted, setMounted] = useState(false);
+  const wallet = useWallet();
   const [betAmount, setBetAmount] = useState<number>(0.1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [mounted, setMounted] = useState(false);
 
   // 确保只在客户端渲染组件
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // 如果还没在客户端渲染，使用加载状态
+  if (!mounted) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="text-center py-10">
+          <p className="text-xl text-gray-400">加载游戏中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 只有在客户端渲染后才访问钱包状态
+  const { connected, publicKey } = wallet;
 
   const handleBetChange = (amount: number) => {
     setBetAmount(amount);
@@ -62,17 +76,6 @@ const GameContainerContent: React.FC = () => {
     }
   };
 
-  // 如果还没在客户端渲染，使用加载状态
-  if (!mounted) {
-    return (
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="text-center py-10">
-          <p className="text-xl text-gray-400">加载游戏中...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row gap-8">
@@ -80,11 +83,13 @@ const GameContainerContent: React.FC = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">幸运卡牌游戏</h1>
             <p className="text-gray-300">连接钱包，下注SOL，匹配卡牌赢取奖励！</p>
-            <GameRules />
           </div>
           
           {/* 卡牌游戏组件 */}
           <div className="bg-gray-800 p-8 rounded-lg shadow-lg">
+            <div className="flex justify-between items-center mb-6">
+              <GameRules />
+            </div>
             <CardGame
               onGameComplete={handleGameComplete}
               onGameStart={handleGameStart}
